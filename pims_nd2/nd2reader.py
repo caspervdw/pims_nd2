@@ -80,6 +80,7 @@ class ND2_Reader(FramesSequenceND):
     class_priority = 20
 
     def __init__(self, filename, series=0, channel=0):
+        super(ND2_Reader, self).__init__()
         if not os.path.isfile(filename):
             raise IOError('The file "{}" does not exist.'.format(filename))
         self.filename = str(filename)
@@ -96,8 +97,10 @@ class ND2_Reader(FramesSequenceND):
                 self._init_axis('c', attr.uiComp)
                 self._lim_frame_shape = (self.sizes['y'], self.sizes['x'],
                                          self.sizes['c'])
+                self._register_get_frame(self.get_frame_2D, 'yxc')
             else:
                 self._lim_frame_shape = (self.sizes['y'], self.sizes['x'])
+                self._register_get_frame(self.get_frame_2D, 'yx')
             self._pixel_size = attr.uiBpcInMemory
             self._pixel_type = {8: np.uint8,
                                 16: np.uint16,
@@ -128,7 +131,7 @@ class ND2_Reader(FramesSequenceND):
                     self._init_axis('o', dim.uiLoopSize)
             self._lim_experiment = dims
 
-            self._frame_rate =None
+            self._frame_rate = None
 
             # get metadata
             bufmd = h.LIMMETADATA_DESC()
@@ -190,9 +193,6 @@ class ND2_Reader(FramesSequenceND):
         h.Lim_FileGetImageData(self._handle, i, self._buf_p, self._buf_md)
         im = np.ndarray(self._lim_frame_shape, self.pixel_type,
                         self._buf_p_a).copy()
-
-        if im.ndim == 3:
-            im = im[:, :, _coords['c']]
 
         metadata = {'x_um': self._buf_md.dXPos,
                     'y_um': self._buf_md.dYPos,
@@ -267,6 +267,8 @@ class ND2_Reader(FramesSequenceND):
 
     @property
     def frame_rate(self):
+        if 't' not in self.sizes:
+            return
         if self._frame_rate is None:
             length = len(self)
             t_first = self.get_frame_2D(t=0).metadata['t_ms']

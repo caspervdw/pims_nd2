@@ -18,7 +18,7 @@ setup_parameters = dict(
     version="1.0",
     description="An image reader for nd2 (NIS Elements) multidimensional images",
     author="Casper van der Wel",
-    install_requires=['pims>=0.3'],
+    install_requires=['pims>=0.4'],
     author_email="caspervdw@gmail.com",
     url="https://github.com/soft-matter/pims_nd2",
     download_url="https://github.com/soft-matter/pims_nd2/tarball/1.0",
